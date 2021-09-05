@@ -1,0 +1,24 @@
+Vagrant.configure("2") do |config|
+  config.vm.define "Docker" do |prod|
+    prod.vm.box = "centos/7"
+    prod.vm.hostname="docker-centos"
+    prod.vm.provider :virtualbox do |v|
+      v.name = "Docker"
+    end
+    $script = <<-SCRIPT
+    sudo su - root
+	rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+	yum update -y
+	yum -y install docker-io
+	chkconfig docker on
+	usermod -aG docker vagrant
+	service docker start
+    rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/b/banner-1.3.3-1.el6.x86_64.rpm
+    banner "DOCKER" > /etc/motd
+    SCRIPT
+    #prod.vm.provision :shell, inline: $script
+    prod.vm.network "forwarded_port", guest: 80, host: 9091
+    #prod.vm.network "private_network", ip: "192.168.38.143"
+    prod.vm.network "private_network", ip: "192.168.33.11"
+  end
+end
