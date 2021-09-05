@@ -47,3 +47,34 @@ systemctl enable etcd kube-apiserver kube-controller-manager kube-scheduler && s
 systemctl status etcd kube-apiserver kube-controller-manager kube-scheduler
 
 CONFIGURING THE MINIONS::
+1.chanage the configuration file
+vi /etc/kubernetes/Config
+
+change the KUBE_MASTER as below:
+MASTER='--http://master:8080'
+KUBE_ETCD_SERVERS='--etcd-servers=http://master:2379'
+
+2. Change the Kubelet configuration
+vim /etc/kubernetes/Kubelet
+  KUBELET_ADDRESS="--address=0.0.0.0"
+  Uncomment :
+  KUBELET_PORT="--port=10250"
+  KUBELET_HOSTNAME="--hostname-override=minion1"
+  KUBELET_API_SERVER="--api-servers=http://master:8080"
+Comment the KUBELET_POD_INFRA_CONTAINER="--pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest"
+s
+
+Start the services on kube minions:
+  systemctl enable kube-proxy kubelet docker
+  systemctl start kube-proxy kubelet docker
+  systemctl status kube-proxy kubelet docker
+
+---------------------------------------------------
+On master:
+[root@kub-master ~]# kubectl get nodes
+NAME      STATUS    AGE
+minion1   Ready     4m
+minion2   Ready     1m
+[root@kub-master ~]#
+
+kubectl descript nodes
