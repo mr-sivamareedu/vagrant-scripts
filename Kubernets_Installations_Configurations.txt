@@ -1,0 +1,49 @@
+Installations:
+1) Create the 3 vagrant VM : 1- Master & 2-Minions
+2) Install ntp on all nodes
+sudo yum install -y ntp
+sudo systemctl enable ntpd && systemctl start ntpd
+
+3) Update the /etc/hosts of all 3 nodes
+<ip> Master
+<ip> minion1
+<ip> minion2
+
+ping each host from each hosts
+
+4) Install kubernets and Docker & Etcd
+
+Master  : yum install etcd kubernetes docker -y
+Minion1 : yum install etcd kubernetes docker -y
+Minion2 : yum install etcd kubernetes docker -y
+
+--------------------------------------------------------------------------
+Configuring the Master::
+Add the information about the Master:
+  configure node 1 as Master
+1.chanage the configuration file
+vi /etc/kubernetes/Config
+
+change the KUBE_MASTER as below:
+MASTER='--http://master:8080'
+KUBE_ETCD_SERVERS='--etcd-servers=http://master:2379'
+
+2.Changed the etcd configuration:
+cd /etc/etcd/
+vim etcd.conf
+ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+ETCD_ADVERTISE_CLIENT_URLS=http://0.0.0.0:2379
+
+3. /etc/kubernets/apiserver
+KUBE_API_ADDRESS="--insecure-bind-address=0.0.0.0"
+uncomment:
+KUBE_API_PORT="--port=8080"
+KUBELET_PORT="--kubelet-port=10250"
+KUBE_ETCD_SERVERS="--etcd-servers=http://0.0.0.0:2379"
+
+enable and start the services:
+systemctl enable etcd kube-apiserver kube-controller-manager kube-scheduler && systemctl start etcd kube-apiserver kube-controller-manager kube-scheduler
+-----------------------------------------------------------------------------
+systemctl status etcd kube-apiserver kube-controller-manager kube-scheduler
+
+CONFIGURING THE MINIONS::
